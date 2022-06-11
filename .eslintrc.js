@@ -39,6 +39,11 @@ module.exports = {
         "react/destructuring-assignment": "off",
         "react/jsx-boolean-value": "off",
         "prettier/prettier": ["error"],
+        "no-unused-vars": "off",
+        "@typescript-eslint/no-unused-vars": "error",
+        "no-shadow": "off",
+        "@typescript-eslint/no-shadow": ["error"],
+        "semi": 0
     },
     settings: {
         react: {
