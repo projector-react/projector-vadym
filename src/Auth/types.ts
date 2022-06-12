@@ -19,4 +19,6 @@ export type UserInfo = {
 export interface AuthService {
     readonly login: (loginCredentials: LoginCredentials) => Promise<UserInfo>
     readonly logout: () => void
+    readonly getUser: () => Promise<UserInfo>
+    readonly register: (loginCredentials: LoginCredentials) => Promise<UserInfo>
 }

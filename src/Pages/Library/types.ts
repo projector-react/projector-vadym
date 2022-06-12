@@ -1,4 +1,4 @@
-export enum MainCategories {
+export enum MainCategorie {
     All = 'All',
     Popular = 'Popular',
     Free = 'Free',
@@ -7,7 +7,7 @@ export enum MainCategories {
     Favorites = 'Favorites'
 }
 
-export enum DirectionsQuery {
+export enum DirectionQuery {
     All = 'All',
     InterfaceDesign = 'InterfaceDesign',
     Graphics = 'Graphics',
@@ -33,8 +33,8 @@ export enum LevelQuery {
 }
 
 export type SearchQuery = {
-    readonly mainCategories?: MainCategories
-    readonly directions?: DirectionsQuery
+    readonly mainCategories?: MainCategorie
+    readonly directions?: DirectionQuery
     readonly format?: FormatQuery
     readonly level?: LevelQuery
 }
@@ -58,9 +58,9 @@ export type LibraryVideo = {
     readonly date: string
     readonly title: string
     readonly timing: string
-    readonly direction: DirectionsQuery
+    readonly direction: DirectionQuery
     readonly format: FormatQuery
-    readonly category: MainCategories
+    readonly category: MainCategorie
     readonly level: LevelQuery
     readonly description: string
 }
