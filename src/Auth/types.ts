@@ -13,7 +13,7 @@ export type UserInfo = {
     readonly isSubscribed: boolean
     readonly firstName?: string
     readonly lastName?: string
-    readonly tel?: string
+    readonly phone?: string
 }
 
 export interface AuthService {
