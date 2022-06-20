@@ -3,7 +3,7 @@ export type AuthState = {
 }
 
 export type LoginCredentials = {
-    readonly login: string
+    readonly username: string
     readonly password: string
 }
 
@@ -16,9 +16,9 @@ export type UserInfo = {
     readonly phone?: string
 }
 
-export interface AuthService {
-    readonly login: (loginCredentials: LoginCredentials) => Promise<UserInfo>
+export interface IAuthService {
+    readonly login: (loginCredentials: LoginCredentials) => Promise<string>
     readonly logout: () => void
     readonly getUser: () => Promise<UserInfo>
-    readonly register: (loginCredentials: LoginCredentials) => Promise<UserInfo>
+    readonly register: (loginCredentials: LoginCredentials) => Promise<string>
 }
