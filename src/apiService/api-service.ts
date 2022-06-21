@@ -10,13 +10,28 @@ export interface IApi {
 
 const API_URL = 'http://localhost:8000/api/'
 
-export class ApiService implements IApi {
+export class AxiosApiService implements IApi {
     $api: AxiosInstance
 
     constructor() {
-        this.$api = axios.create({
-            baseURL: API_URL
-        })
+        this.$api = axios.create({ baseURL: API_URL, withCredentials: true })
+
+        this.$api.interceptors.response.use(
+            res => res,
+            async error => {
+                const originalReq = error.config
+                if (error.response.status === 401 && error.config && !originalReq.isRetry) {
+                    originalReq.isRetry = true
+                    try {
+                        await axios.post(`${API_URL}auth/refresh`, {})
+                        return this.$api.request(originalReq.isRetry)
+                    } catch {
+                        throw Error('Unauthorized')
+                    }
+                }
+                throw Error('Network error')
+            }
+        )
     }
 
     async get<T, C>(path: string, config?: C) {
