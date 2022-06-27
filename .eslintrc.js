@@ -43,7 +43,9 @@ module.exports = {
         "@typescript-eslint/no-unused-vars": "error",
         "no-shadow": "off",
         "@typescript-eslint/no-shadow": ["error"],
-        "semi": 0
+        "semi": 0,
+        "space-before-function-paren": 0,
+        "comma-dangle": 0
     },
     settings: {
         react: {
