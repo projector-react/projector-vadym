@@ -22,6 +22,12 @@ export class AxiosApiService implements IApi {
     }
 
     async post<T, R, D>(path: string, data?: D, config?: R) {
-        return this.$api.post<T>(API_URL + path, data, config).then(res => res.data)
+        return this.$api
+            .post<T>(API_URL + path, data, config)
+            .then(res => res.data)
+            .catch(error => {
+                console.log(error)
+                return error
+            })
     }
 }

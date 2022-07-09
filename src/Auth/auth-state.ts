@@ -1,4 +1,4 @@
-import { scan, Subject, switchMap, map, merge, Observable } from 'rxjs'
+import { scan, Subject, switchMap, map, merge, Observable, ReplaySubject } from "rxjs";
 import { IAuthService } from './auth-service'
 
 export type LoginCredentials = {
@@ -11,53 +11,52 @@ export interface IAuthState {
     readonly logout: () => void
     readonly register: (loginCredentials: LoginCredentials) => void
     readonly refreshToken: () => void
+    readonly isAuthenticated$: () => Observable<boolean>
 }
 
 type State = {
     isAuthenticated: boolean
 }
 
+type Tokens = {
+    access_token: string
+    refresh_token: string
+}
+
 const initialAuthState: State = {
     isAuthenticated: false
 }
 
-enum AuthEvents {
-    DidLoginRequestCompleted,
-    DidRegisterRequestCompleted,
-    DidLogoutRequestCompleted,
-    DidTokenRefreshRequestCompleted
+enum AuthEvent {
+    DidLoginRequestCompleted = 'DidLoginRequestCompleted',
+    DidRegisterRequestCompleted = 'DidRegisterRequestCompleted',
+    DidLogoutRequestCompleted = 'DidLogoutRequestCompleted',
+    DidTokenRefreshRequestCompleted = 'DidTokenRefreshRequestCompleted'
 }
 
 const authActions = {
-    DidRegisterRequestCompleted: (creds: LoginCredentials) =>
+    DidRegisterRequestCompleted: (tokens: Tokens) =>
         ({
-        type: AuthEvents.DidRegisterRequestCompleted,
-        payload: { creds }
+        type: AuthEvent.DidRegisterRequestCompleted,
+        payload: { tokens }
     } as const),
-    DidLoginRequestCompleted: (creds: LoginCredentials) =>
+    DidLoginRequestCompleted: (tokens: Tokens) =>
         ({
-        type: AuthEvents.DidLoginRequestCompleted,
-        payload: { creds }
+        type: AuthEvent.DidLoginRequestCompleted,
+        payload: { tokens }
     } as const),
     DidLogoutRequestCompleted: () =>
         ({
-        type: AuthEvents.DidLogoutRequestCompleted
+        type: AuthEvent.DidLogoutRequestCompleted
     } as const),
-    DidTokenRefreshRequestCompleted: () =>
+    DidTokenRefreshRequestCompleted: (tokens: Tokens) =>
         ({
-        type: AuthEvents.DidTokenRefreshRequestCompleted
+        type: AuthEvent.DidTokenRefreshRequestCompleted,
+        payload: { tokens }
     } as const)
 }
 
 export class AuthState implements IAuthState {
-    loginPostRequest: (creds: LoginCredentials) => void
-
-    logoutPostRequest: () => void
-
-    registerPostRequest: (creds: LoginCredentials) => void
-
-    refreshTokenPostRequest: () => void
-
     onRegister$: Subject<LoginCredentials>
 
     onLogin$: Subject<LoginCredentials>
@@ -66,25 +65,21 @@ export class AuthState implements IAuthState {
 
     onRefreshToken$: Subject<void>
 
-    state$: Observable<unknown>
+    state$: Observable<State>
+
+    authService: IAuthService
 
     constructor(authService: IAuthService) {
-        this.loginPostRequest = authService.login.bind(authService)
-        this.logoutPostRequest = authService.logout.bind(authService)
-        this.registerPostRequest = authService.register.bind(authService)
-        this.refreshTokenPostRequest = authService.refreshToken.bind(authService)
+        this.authService = authService
+        this.isAuthenticated$ = this.isAuthenticated$.bind(this)
         this.login = this.login.bind(this)
         this.register = this.register.bind(this)
         this.refreshToken = this.refreshToken.bind(this)
         this.logout = this.logout.bind(this)
-        this.loginResult$ = this.loginResult$.bind(this)
-        this.registerResult$ = this.registerResult$.bind(this)
-        this.refreshResult$ = this.refreshResult$.bind(this)
-        this.logoutResult$ = this.logoutResult$.bind(this)
         this.onRegister$ = new Subject<LoginCredentials>()
         this.onLogin$ = new Subject<LoginCredentials>()
         this.onLogout$ = new Subject<void>()
-        this.onRefreshToken$ = new Subject<void>()
+        this.onRefreshToken$ = new ReplaySubject<void>(1)
 
         this.state$ = merge(
             this.loginResult$().pipe(map(authActions.DidLoginRequestCompleted)),
@@ -94,66 +89,76 @@ export class AuthState implements IAuthState {
         ).pipe(
             scan((state, event) => {
                 switch (event.type) {
-                    case AuthEvents.DidLoginRequestCompleted:
+                    case AuthEvent.DidLoginRequestCompleted: {
                         return {
                             ...state,
                             isAuthenticated: true
                         }
-                    case AuthEvents.DidRegisterRequestCompleted:
+                    }
+                    case AuthEvent.DidRegisterRequestCompleted: {
                         return {
                             ...state,
                             isAuthenticated: true
                         }
-                    case AuthEvents.DidTokenRefreshRequestCompleted:
+                    }
+                    case AuthEvent.DidTokenRefreshRequestCompleted: {
+                        const { tokens } = event.payload
                         return {
                             ...state,
-                            isAuthenticated: true
+                            isAuthenticated: !!tokens?.access_token
                         }
-                    case AuthEvents.DidLogoutRequestCompleted:
+                    }
+                    case AuthEvent.DidLogoutRequestCompleted: {
                         return {
                             ...state,
-                        isAuthenticated: false
+                            isAuthenticated: false
                         }
-                    default:
+                    }
+                    default: {
                         return state
+                    }
                 }
             }, initialAuthState)
         )
     }
 
-    registerResult$() {
+    private registerResult$() {
         return this.onRegister$.pipe(
-            switchMap(async (creds: LoginCredentials) => this.registerPostRequest(creds) as any)
+            switchMap(async (creds: LoginCredentials) => this.authService.register(creds))
         )
     }
 
-    loginResult$() {
+    private loginResult$() {
         return this.onLogin$.pipe(
-            switchMap(async (creds: LoginCredentials) => this.loginPostRequest(creds) as any)
+            switchMap(async (creds: LoginCredentials) => this.authService.login(creds))
         )
     }
 
-    logoutResult$() {
-        return this.onLogout$.pipe(switchMap(async () => this.logoutPostRequest()))
+    private logoutResult$() {
+        return this.onLogout$.pipe(switchMap(async () => this.authService.logout()))
     }
 
-    refreshResult$() {
-        return this.onRefreshToken$.pipe(switchMap(async () => this.refreshTokenPostRequest))
+    private refreshResult$() {
+        return this.onRefreshToken$.pipe(switchMap(async () => this.authService.refreshToken()))
     }
 
-    login(loginCredentials: LoginCredentials) {
+    public login(loginCredentials: LoginCredentials) {
         return this.onLogin$.next(loginCredentials)
     }
 
-    logout() {
+    public logout() {
         return this.onLogout$.next()
     }
 
-    register(creds: LoginCredentials) {
+    public register(creds: LoginCredentials) {
         return this.onRegister$.next(creds)
     }
 
-    refreshToken() {
+    public refreshToken() {
         return this.onRefreshToken$.next()
+    }
+
+    public isAuthenticated$() {
+        return this.state$.pipe(map(({ isAuthenticated }) => isAuthenticated))
     }
 }

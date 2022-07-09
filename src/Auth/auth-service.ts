@@ -1,9 +1,5 @@
 import { ApiPost, IApi } from '../apiService/api-service'
 
-export type AuthState = {
-    readonly isLoggedIn: boolean
-}
-
 export type LoginCredentials = {
     readonly username: string
     readonly password: string
@@ -18,12 +14,17 @@ export type UserInfo = {
     readonly phone?: string
 }
 
+type Tokens = {
+    access_token: string
+    refresh_token: string
+}
+
 export interface IAuthService {
-    readonly login: (loginCredentials: LoginCredentials) => Promise<string>
+    readonly login: (loginCredentials: LoginCredentials) => Promise<Tokens>
     readonly logout: () => void
     readonly getUser: () => Promise<UserInfo>
-    readonly register: (loginCredentials: LoginCredentials) => Promise<string>
-    readonly refreshToken: () => Promise<string>
+    readonly register: (loginCredentials: LoginCredentials) => Promise<Tokens>
+    readonly refreshToken: () => Promise<Tokens>
 }
 
 export class AuthService implements IAuthService {
@@ -34,7 +35,7 @@ export class AuthService implements IAuthService {
     }
 
     login({ username, password }: LoginCredentials) {
-        return this.post<string, void, LoginCredentials>('auth/login', {
+        return this.post<Tokens, void, LoginCredentials>('auth/login', {
             username,
             password
         }).then(res => res)
@@ -45,18 +46,17 @@ export class AuthService implements IAuthService {
     }
 
     register({ username, password }: LoginCredentials) {
-        return this.post<string, void, LoginCredentials>('auth/register', {
+        return this.post<Tokens, void, LoginCredentials>('auth/register', {
             username,
             password
         }).then(res => res)
     }
 
     refreshToken() {
-        return this.post<string, void, undefined>('auth/refresh', undefined).then(res => res)
+        return this.post<Tokens, void, undefined>('auth/refresh', undefined).then(res => res)
     }
 
     getUser() {
         return this.post<UserInfo, void, Record<string, never>>('me', {}).then(res => res)
     }
 }
-

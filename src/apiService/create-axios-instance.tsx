@@ -9,16 +9,16 @@ export function createAxiosInstance(): AxiosInstance {
         res => res,
         async error => {
             const originalReq = error.config
-            if (error.response.status === 401 && error.config && !originalReq.isRetry) {
+            if (error.status === 401 && error.config && !originalReq.isRetry) {
                 originalReq.isRetry = true
                 try {
                     await axios.post(`${API_URL}auth/refresh`, {})
-                    return $api.request(originalReq.isRetry)
+                    return $api.request(originalReq)
                 } catch {
                     throw Error('Unauthorized')
                 }
             }
-            throw Error('Network error')
+           return error
         }
     )
     return $api
