@@ -18,7 +18,7 @@ export function createAxiosInstance(): AxiosInstance {
                     throw Error('Unauthorized')
                 }
             }
-           return error
+            return error
         }
     )
     return $api

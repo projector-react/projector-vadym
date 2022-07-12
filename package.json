@@ -12,6 +12,7 @@
     "lint": "eslint --ext .js,.ts,.tsx,.jsx src"
   },
   "dependencies": {
+    "awilix": "^7.0.3",
     "axios": "^0.27.2",
     "observable-hooks": "^4.2.0",
     "react": "^18.0.0",

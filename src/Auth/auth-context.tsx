@@ -1,8 +1,7 @@
 import React, { createContext, FC, useEffect, useMemo, useState } from 'react'
-import { AuthService, LoginCredentials } from './auth-service'
-import { AxiosApiService } from '../apiService/api-service'
-import { createAxiosInstance } from '../apiService/create-axios-instance'
-import { AuthState } from './auth-state'
+import { LoginCredentials } from './auth-service'
+
+import { container } from '../compostion-root/composition-root'
 
 type AuthActions = {
     login: (creds: LoginCredentials) => void
@@ -27,13 +26,11 @@ type Props = {
 
 export const AuthContext = createContext<AuthStateType>(authInitialState)
 
-const apiService = new AxiosApiService(createAxiosInstance())
-const authService = new AuthService(apiService)
-const { login, logout, refreshToken, register, isAuthenticated$ } = new AuthState(authService)
+const { login, logout, refreshToken, register, isAuthenticated$ } = container.resolve('authState')
 
 export const AuthProvider: FC<Props> = ({ children }) => {
     const [isAuthValue, setAuthValue] = useState(false)
-    const isAuthenticatedSubscription$ = isAuthenticated$().subscribe(isAuth => {
+    const isAuthenticatedSubscription$ = isAuthenticated$.subscribe((isAuth: boolean) => {
         setAuthValue(isAuth)
     })
 
