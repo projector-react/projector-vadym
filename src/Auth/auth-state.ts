@@ -82,23 +82,25 @@ export class AuthState implements IAuthState {
         this.onLogout$ = new Subject<void>()
         this.onRefreshToken$ = new ReplaySubject<void>(1)
 
-        const registerResult$ = () => this.onRegister$.pipe(
+        const registerResult$ = this.onRegister$.pipe(
             switchMap(async (creds: LoginCredentials) => this.authService.register(creds))
         )
 
-        const loginResult$ = () => this.onLogin$.pipe(
+        const loginResult$ = this.onLogin$.pipe(
             switchMap(async (creds: LoginCredentials) => this.authService.login(creds))
         )
 
-        const logoutResult$ = () => this.onLogout$.pipe(switchMap(async () => this.authService.logout()))
+        const logoutResult$ = this.onLogout$.pipe(switchMap(async () => this.authService.logout()))
 
-        const refreshResult$ = () => this.onRefreshToken$.pipe(switchMap(async () => this.authService.refreshToken()))
+        const refreshResult$ = this.onRefreshToken$.pipe(
+            switchMap(async () => this.authService.refreshToken())
+        )
 
         this.state$ = merge(
-            loginResult$().pipe(map(authActions.DidLoginRequestCompleted)),
-            registerResult$().pipe(map(authActions.DidRegisterRequestCompleted)),
-            logoutResult$().pipe(map(authActions.DidLogoutRequestCompleted)),
-            refreshResult$().pipe(map(authActions.DidTokenRefreshRequestCompleted))
+            loginResult$.pipe(map(authActions.DidLoginRequestCompleted)),
+            registerResult$.pipe(map(authActions.DidRegisterRequestCompleted)),
+            logoutResult$.pipe(map(authActions.DidLogoutRequestCompleted)),
+            refreshResult$.pipe(map(authActions.DidTokenRefreshRequestCompleted))
         ).pipe(
             scan((state, event) => {
                 switch (event.type) {
@@ -135,7 +137,6 @@ export class AuthState implements IAuthState {
         )
 
         this.isAuthenticated$ = this.state$.pipe(map(({ isAuthenticated }) => isAuthenticated))
-
     }
 
     public login(loginCredentials: LoginCredentials) {
