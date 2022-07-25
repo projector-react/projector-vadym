@@ -37,37 +37,37 @@ enum AuthEvent {
 const authActions = {
     DidRegisterRequestCompleted: (tokens: Tokens) =>
         ({
-        type: AuthEvent.DidRegisterRequestCompleted,
-        payload: { tokens }
-    } as const),
+            type: AuthEvent.DidRegisterRequestCompleted,
+            payload: { tokens }
+        } as const),
     DidLoginRequestCompleted: (tokens: Tokens) =>
         ({
-        type: AuthEvent.DidLoginRequestCompleted,
-        payload: { tokens }
-    } as const),
+            type: AuthEvent.DidLoginRequestCompleted,
+            payload: { tokens }
+        } as const),
     DidLogoutRequestCompleted: () =>
         ({
-        type: AuthEvent.DidLogoutRequestCompleted
-    } as const),
+            type: AuthEvent.DidLogoutRequestCompleted
+        } as const),
     DidTokenRefreshRequestCompleted: (tokens: Tokens) =>
         ({
-        type: AuthEvent.DidTokenRefreshRequestCompleted,
-        payload: { tokens }
-    } as const)
+            type: AuthEvent.DidTokenRefreshRequestCompleted,
+            payload: { tokens }
+        } as const)
 }
 
 export class AuthState implements IAuthState {
-    onRegister$: Subject<LoginCredentials>
+    private onRegister$: Subject<LoginCredentials>
 
-    onLogin$: Subject<LoginCredentials>
+    private onLogin$: Subject<LoginCredentials>
 
-    onLogout$: Subject<void>
+    private onLogout$: Subject<void>
 
-    onRefreshToken$: Subject<void>
+    private onRefreshToken$: Subject<void>
 
-    state$: Observable<State>
+    private state$: Observable<State>
 
-    authService: IAuthService
+    private authService: IAuthService
 
     public isAuthenticated$: Observable<boolean>
 

@@ -1,19 +1,22 @@
-import { asClass, asFunction, createContainer, InjectionMode } from "awilix";
+import { asClass, asFunction, AwilixContainer } from 'awilix'
 import { createAxiosInstance } from '../apiService/create-axios-instance'
 import { AuthService } from '../Auth/auth-service'
 import { AuthState } from '../Auth/auth-state'
 
-const container = createContainer({
-    injectionMode: InjectionMode.CLASSIC
-})
+export enum dependencyNameEnum {
+    apiService = 'apiService',
+    authService = 'authService',
+    authState = 'authState'
 
-container.register(
-    'apiService',
-    asFunction(() => createAxiosInstance())
-)
+}
 
-container.register('authService', asClass(AuthService))
+export function registerAwilixContainer(container: AwilixContainer) {
+    container.register(
+        dependencyNameEnum.apiService,
+        asFunction(() => createAxiosInstance())
+    )
 
-container.register('authState', asClass(AuthState))
+    container.register(dependencyNameEnum.authService, asClass(AuthService))
 
-export { container }
+    container.register(dependencyNameEnum.authState, asClass(AuthState))
+}

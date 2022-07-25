@@ -1,21 +1,39 @@
-import React, { FC, useContext, useEffect } from 'react'
-import { AuthContext } from '../../Auth/auth-context'
+import React, { FC, useState } from "react";
+import { withDiInject } from '../../DI-Inject-HOC/withDiInject'
+import { LoginCredentials } from '../../Auth/auth-state'
 
 type Props = {}
-export const Register: FC<Props> = () => {
-    const { actions, isAuthenticated } = useContext(AuthContext)
+type ViewProps = {
+    login: (creds: LoginCredentials) => void
+    logout: () => void
+    isAuthenticated$: boolean
+}
+
+
+
+export const RegisterView: FC<ViewProps> = props => {
+    const { login, logout, isAuthenticated$ } = props
 
     return (
         <>
             <button
               onClick={() => {
-                    actions.login({ username: 'test', password: 'test' })
+                    login({ username: 'test', password: 'test' })
                 }}
             >
                 Login
             </button>
-            <button onClick={actions.logout}>Logout</button>
-            <h1>{isAuthenticated ? 'Auth' : ' Not auth'}</h1>
+            <button onClick={logout}>Logout</button>
+            <h1>{isAuthenticated$ ? 'Auth' : ' Not auth'}</h1>
         </>
     )
+}
+
+export const Register: FC<Props> = () => {
+    const Component = withDiInject<ViewProps>(RegisterView, 'authState', [
+        'login',
+        'logout',
+        'isAuthenticated$'
+    ])
+    return <Component />
 }
